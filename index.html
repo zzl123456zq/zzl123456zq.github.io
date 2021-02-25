@@ -140,6 +140,2196 @@
           <div id="js-content" class="content-ll">
             
   
+    <article id="post-decisiontreeclassifier" class="article article-type-post  article-index" itemscope itemprop="blogPost">
+  <div class="article-inner">
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> pandas <span class="keyword">as</span> pd</span><br><span class="line"><span class="keyword">import</span> matplotlib.pyplot <span class="keyword">as</span> plt</span><br><span class="line"><span class="keyword">import</span> numpy <span class="keyword">as</span> np</span><br><span class="line"><span class="keyword">import</span> torch</span><br><span class="line"><span class="keyword">from</span> datetime <span class="keyword">import</span> datetime</span><br><span class="line"><span class="keyword">from</span> sklearn.model_selection <span class="keyword">import</span> train_test_split,cross_val_score</span><br><span class="line"><span class="keyword">from</span> sklearn.tree <span class="keyword">import</span> DecisionTreeClassifier</span><br><span class="line"><span class="keyword">import</span> seaborn <span class="keyword">as</span> sns</span><br><span class="line"><span class="keyword">import</span> graphviz</span><br><span class="line"><span class="keyword">from</span> sklearn <span class="keyword">import</span> tree</span><br><span class="line"><span class="keyword">import</span> sklearn</span><br></pre></td></tr></table></figure>
+<p>读取数据</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">data= pd.read_csv(<span class="string">r&#x27;C:\Users\左忠霖\Desktop\data\1.26\all_data.csv&#x27;</span>)</span><br></pre></td></tr></table></figure>
+<p>探索数据</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">data.info()</span><br></pre></td></tr></table></figure>
+<pre><code>&lt;class &#39;pandas.core.frame.DataFrame&#39;&gt;
+RangeIndex: 3007 entries, 0 to 3006
+Data columns (total 3 columns):
+ #   Column   Non-Null Count  Dtype  
+---  ------   --------------  -----  
+ 0   time     3007 non-null   object 
+ 1   q        3007 non-null   float64
+ 2   anomaly  3007 non-null   int64  
+dtypes: float64(1), int64(1), object(1)
+memory usage: 70.6+ KB
+</code></pre>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">data.head()</span><br></pre></td></tr></table></figure>
+
+
+
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+<pre><code>.dataframe tbody tr th &#123;
+    vertical-align: top;
+&#125;
+
+.dataframe thead th &#123;
+    text-align: right;
+&#125;
+</code></pre>
+<p></style><p></p>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>time</th>
+      <th>q</th>
+      <th>anomaly</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>2021/1/28 2:17</td>
+      <td>41.287231</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>2021/1/28 2:18</td>
+      <td>40.947472</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>2021/1/28 2:18</td>
+      <td>41.178665</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>2021/1/28 2:19</td>
+      <td>40.348518</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>2021/1/28 2:20</td>
+      <td>41.466095</td>
+      <td>0</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+
+
+<p>以日期作为横坐标</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">dates= [datetime.strptime(x, <span class="string">&#x27;%Y/%m/%d %H:%M&#x27;</span>) <span class="keyword">for</span> x <span class="keyword">in</span> data[<span class="string">&#x27;time&#x27;</span>]]</span><br></pre></td></tr></table></figure>
+<p>画出数据，无日期坐标</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">plt.figure(figsize=(<span class="number">15</span>, <span class="number">5.5</span>))</span><br><span class="line">plt.scatter(<span class="built_in">range</span>(data[<span class="string">&#x27;q&#x27;</span>].shape[<span class="number">0</span>]),data[<span class="string">&#x27;q&#x27;</span>],c=data[<span class="string">&#x27;anomaly&#x27;</span>])</span><br><span class="line">plt.show()</span><br></pre></td></tr></table></figure>
+
+<p><img src="/2021/02/25/decisiontreeclassifier/output_9_0.png" alt="png"></p>
+<p>以日期作为横坐标</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">plt.figure(figsize=(<span class="number">15</span>, <span class="number">5.5</span>))</span><br><span class="line">plt.plot(dates,data[<span class="string">&#x27;q&#x27;</span>])</span><br><span class="line">plt.show()</span><br></pre></td></tr></table></figure>
+
+<p><img src="/2021/02/25/decisiontreeclassifier/output_11_0.png" alt="png"></p>
+<p>增加数据特征<br>平均值，最大值，最小值，方差，<br>窗口长度：5，10，15…</p>
+<p>均值</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">feature_g_1</span>(<span class="params">data,sequence_length</span>):</span></span><br><span class="line">    result = []</span><br><span class="line">    <span class="keyword">for</span> index <span class="keyword">in</span> <span class="built_in">range</span>(<span class="built_in">len</span>(data) - sequence_length+<span class="number">1</span>):<span class="comment">#循环 数据长度-时间窗长度 次</span></span><br><span class="line">        result.append(data[index: index + sequence_length])<span class="comment">#第i行到i+5</span></span><br><span class="line">    result = np.array(result)</span><br><span class="line">    train = result  </span><br><span class="line">    train=pd.DataFrame(train)</span><br><span class="line">   <span class="comment"># train=torch.from_numpy(train).float()</span></span><br><span class="line">    <span class="keyword">return</span> train</span><br><span class="line">new_f=feature_g_1(data[<span class="string">&#x27;q&#x27;</span>],<span class="number">20</span>)</span><br><span class="line">new_f.index=<span class="built_in">range</span>(<span class="number">19</span>,new_f.shape[<span class="number">0</span>]+<span class="number">19</span>)</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">new_f.head()</span><br></pre></td></tr></table></figure>
+
+
+
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+<pre><code>.dataframe tbody tr th &#123;
+    vertical-align: top;
+&#125;
+
+.dataframe thead th &#123;
+    text-align: right;
+&#125;
+</code></pre>
+<p></style><p></p>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>0</th>
+      <th>1</th>
+      <th>2</th>
+      <th>3</th>
+      <th>4</th>
+      <th>5</th>
+      <th>6</th>
+      <th>7</th>
+      <th>8</th>
+      <th>9</th>
+      <th>10</th>
+      <th>11</th>
+      <th>12</th>
+      <th>13</th>
+      <th>14</th>
+      <th>15</th>
+      <th>16</th>
+      <th>17</th>
+      <th>18</th>
+      <th>19</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>19</th>
+      <td>41.287231</td>
+      <td>40.947472</td>
+      <td>41.178665</td>
+      <td>40.348518</td>
+      <td>41.466095</td>
+      <td>41.107025</td>
+      <td>40.809212</td>
+      <td>41.696716</td>
+      <td>40.738052</td>
+      <td>40.704216</td>
+      <td>40.868599</td>
+      <td>40.149940</td>
+      <td>38.468674</td>
+      <td>39.500050</td>
+      <td>39.807438</td>
+      <td>40.127701</td>
+      <td>41.453720</td>
+      <td>40.501476</td>
+      <td>41.209389</td>
+      <td>40.481182</td>
+    </tr>
+    <tr>
+      <th>20</th>
+      <td>40.947472</td>
+      <td>41.178665</td>
+      <td>40.348518</td>
+      <td>41.466095</td>
+      <td>41.107025</td>
+      <td>40.809212</td>
+      <td>41.696716</td>
+      <td>40.738052</td>
+      <td>40.704216</td>
+      <td>40.868599</td>
+      <td>40.149940</td>
+      <td>38.468674</td>
+      <td>39.500050</td>
+      <td>39.807438</td>
+      <td>40.127701</td>
+      <td>41.453720</td>
+      <td>40.501476</td>
+      <td>41.209389</td>
+      <td>40.481182</td>
+      <td>41.571926</td>
+    </tr>
+    <tr>
+      <th>21</th>
+      <td>41.178665</td>
+      <td>40.348518</td>
+      <td>41.466095</td>
+      <td>41.107025</td>
+      <td>40.809212</td>
+      <td>41.696716</td>
+      <td>40.738052</td>
+      <td>40.704216</td>
+      <td>40.868599</td>
+      <td>40.149940</td>
+      <td>38.468674</td>
+      <td>39.500050</td>
+      <td>39.807438</td>
+      <td>40.127701</td>
+      <td>41.453720</td>
+      <td>40.501476</td>
+      <td>41.209389</td>
+      <td>40.481182</td>
+      <td>41.571926</td>
+      <td>41.353920</td>
+    </tr>
+    <tr>
+      <th>22</th>
+      <td>40.348518</td>
+      <td>41.466095</td>
+      <td>41.107025</td>
+      <td>40.809212</td>
+      <td>41.696716</td>
+      <td>40.738052</td>
+      <td>40.704216</td>
+      <td>40.868599</td>
+      <td>40.149940</td>
+      <td>38.468674</td>
+      <td>39.500050</td>
+      <td>39.807438</td>
+      <td>40.127701</td>
+      <td>41.453720</td>
+      <td>40.501476</td>
+      <td>41.209389</td>
+      <td>40.481182</td>
+      <td>41.571926</td>
+      <td>41.353920</td>
+      <td>40.728355</td>
+    </tr>
+    <tr>
+      <th>23</th>
+      <td>41.466095</td>
+      <td>41.107025</td>
+      <td>40.809212</td>
+      <td>41.696716</td>
+      <td>40.738052</td>
+      <td>40.704216</td>
+      <td>40.868599</td>
+      <td>40.149940</td>
+      <td>38.468674</td>
+      <td>39.500050</td>
+      <td>39.807438</td>
+      <td>40.127701</td>
+      <td>41.453720</td>
+      <td>40.501476</td>
+      <td>41.209389</td>
+      <td>40.481182</td>
+      <td>41.571926</td>
+      <td>41.353920</td>
+      <td>40.728355</td>
+      <td>41.024017</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+
+
+
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">new_f.info()</span><br></pre></td></tr></table></figure>
+<pre><code>&lt;class &#39;pandas.core.frame.DataFrame&#39;&gt;
+RangeIndex: 2988 entries, 19 to 3006
+Data columns (total 20 columns):
+ #   Column  Non-Null Count  Dtype  
+---  ------  --------------  -----  
+ 0   0       2988 non-null   float64
+ 1   1       2988 non-null   float64
+ 2   2       2988 non-null   float64
+ 3   3       2988 non-null   float64
+ 4   4       2988 non-null   float64
+ 5   5       2988 non-null   float64
+ 6   6       2988 non-null   float64
+ 7   7       2988 non-null   float64
+ 8   8       2988 non-null   float64
+ 9   9       2988 non-null   float64
+ 10  10      2988 non-null   float64
+ 11  11      2988 non-null   float64
+ 12  12      2988 non-null   float64
+ 13  13      2988 non-null   float64
+ 14  14      2988 non-null   float64
+ 15  15      2988 non-null   float64
+ 16  16      2988 non-null   float64
+ 17  17      2988 non-null   float64
+ 18  18      2988 non-null   float64
+ 19  19      2988 non-null   float64
+dtypes: float64(20)
+memory usage: 467.0 KB
+</code></pre>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">new_data=pd.concat([data,new_f],axis=<span class="number">1</span>)</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">new_data.head(<span class="number">22</span>)</span><br></pre></td></tr></table></figure>
+
+
+
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+<pre><code>.dataframe tbody tr th &#123;
+    vertical-align: top;
+&#125;
+
+.dataframe thead th &#123;
+    text-align: right;
+&#125;
+</code></pre>
+<p></style><p></p>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>time</th>
+      <th>q</th>
+      <th>anomaly</th>
+      <th>0</th>
+      <th>1</th>
+      <th>2</th>
+      <th>3</th>
+      <th>4</th>
+      <th>5</th>
+      <th>6</th>
+      <th>...</th>
+      <th>10</th>
+      <th>11</th>
+      <th>12</th>
+      <th>13</th>
+      <th>14</th>
+      <th>15</th>
+      <th>16</th>
+      <th>17</th>
+      <th>18</th>
+      <th>19</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>2021/1/28 2:17</td>
+      <td>41.287231</td>
+      <td>0</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>...</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>2021/1/28 2:18</td>
+      <td>40.947472</td>
+      <td>0</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>...</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>2021/1/28 2:18</td>
+      <td>41.178665</td>
+      <td>0</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>...</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>2021/1/28 2:19</td>
+      <td>40.348518</td>
+      <td>0</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>...</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>2021/1/28 2:20</td>
+      <td>41.466095</td>
+      <td>0</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>...</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+    </tr>
+    <tr>
+      <th>5</th>
+      <td>2021/1/28 2:21</td>
+      <td>41.107025</td>
+      <td>0</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>...</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+    </tr>
+    <tr>
+      <th>6</th>
+      <td>2021/1/28 2:21</td>
+      <td>40.809212</td>
+      <td>0</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>...</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+    </tr>
+    <tr>
+      <th>7</th>
+      <td>2021/1/28 2:22</td>
+      <td>41.696716</td>
+      <td>0</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>...</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+    </tr>
+    <tr>
+      <th>8</th>
+      <td>2021/1/28 2:22</td>
+      <td>40.738052</td>
+      <td>0</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>...</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+    </tr>
+    <tr>
+      <th>9</th>
+      <td>2021/1/28 2:23</td>
+      <td>40.704216</td>
+      <td>0</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>...</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+    </tr>
+    <tr>
+      <th>10</th>
+      <td>2021/1/28 2:24</td>
+      <td>40.868599</td>
+      <td>0</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>...</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+    </tr>
+    <tr>
+      <th>11</th>
+      <td>2021/1/28 2:24</td>
+      <td>40.149940</td>
+      <td>0</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>...</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+    </tr>
+    <tr>
+      <th>12</th>
+      <td>2021/1/28 2:25</td>
+      <td>38.468674</td>
+      <td>0</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>...</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+    </tr>
+    <tr>
+      <th>13</th>
+      <td>2021/1/28 2:26</td>
+      <td>39.500050</td>
+      <td>0</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>...</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+    </tr>
+    <tr>
+      <th>14</th>
+      <td>2021/1/28 2:26</td>
+      <td>39.807438</td>
+      <td>0</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>...</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+    </tr>
+    <tr>
+      <th>15</th>
+      <td>2021/1/28 2:27</td>
+      <td>40.127701</td>
+      <td>0</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>...</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+    </tr>
+    <tr>
+      <th>16</th>
+      <td>2021/1/28 2:28</td>
+      <td>41.453720</td>
+      <td>0</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>...</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+    </tr>
+    <tr>
+      <th>17</th>
+      <td>2021/1/28 2:30</td>
+      <td>40.501476</td>
+      <td>0</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>...</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+    </tr>
+    <tr>
+      <th>18</th>
+      <td>2021/1/28 2:30</td>
+      <td>41.209389</td>
+      <td>0</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>...</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+    </tr>
+    <tr>
+      <th>19</th>
+      <td>2021/1/28 2:31</td>
+      <td>40.481182</td>
+      <td>0</td>
+      <td>41.287231</td>
+      <td>40.947472</td>
+      <td>41.178665</td>
+      <td>40.348518</td>
+      <td>41.466095</td>
+      <td>41.107025</td>
+      <td>40.809212</td>
+      <td>...</td>
+      <td>40.868599</td>
+      <td>40.149940</td>
+      <td>38.468674</td>
+      <td>39.500050</td>
+      <td>39.807438</td>
+      <td>40.127701</td>
+      <td>41.453720</td>
+      <td>40.501476</td>
+      <td>41.209389</td>
+      <td>40.481182</td>
+    </tr>
+    <tr>
+      <th>20</th>
+      <td>2021/1/28 2:31</td>
+      <td>41.571926</td>
+      <td>0</td>
+      <td>40.947472</td>
+      <td>41.178665</td>
+      <td>40.348518</td>
+      <td>41.466095</td>
+      <td>41.107025</td>
+      <td>40.809212</td>
+      <td>41.696716</td>
+      <td>...</td>
+      <td>40.149940</td>
+      <td>38.468674</td>
+      <td>39.500050</td>
+      <td>39.807438</td>
+      <td>40.127701</td>
+      <td>41.453720</td>
+      <td>40.501476</td>
+      <td>41.209389</td>
+      <td>40.481182</td>
+      <td>41.571926</td>
+    </tr>
+    <tr>
+      <th>21</th>
+      <td>2021/1/28 2:32</td>
+      <td>41.353920</td>
+      <td>0</td>
+      <td>41.178665</td>
+      <td>40.348518</td>
+      <td>41.466095</td>
+      <td>41.107025</td>
+      <td>40.809212</td>
+      <td>41.696716</td>
+      <td>40.738052</td>
+      <td>...</td>
+      <td>38.468674</td>
+      <td>39.500050</td>
+      <td>39.807438</td>
+      <td>40.127701</td>
+      <td>41.453720</td>
+      <td>40.501476</td>
+      <td>41.209389</td>
+      <td>40.481182</td>
+      <td>41.571926</td>
+      <td>41.353920</td>
+    </tr>
+  </tbody>
+</table>
+<p>22 rows × 23 columns</p>
+</div>
+
+
+
+<p>Z-Score</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">new_data.drop(new_data.head(<span class="number">19</span>).index,inplace=<span class="literal">True</span>)</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">new_data.drop(<span class="string">&#x27;q&#x27;</span>,axis=<span class="number">1</span>,inplace=<span class="literal">True</span>)</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">new_data.head()</span><br></pre></td></tr></table></figure>
+
+
+
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+<pre><code>.dataframe tbody tr th &#123;
+    vertical-align: top;
+&#125;
+
+.dataframe thead th &#123;
+    text-align: right;
+&#125;
+</code></pre>
+<p></style><p></p>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>time</th>
+      <th>anomaly</th>
+      <th>0</th>
+      <th>1</th>
+      <th>2</th>
+      <th>3</th>
+      <th>4</th>
+      <th>5</th>
+      <th>6</th>
+      <th>7</th>
+      <th>...</th>
+      <th>10</th>
+      <th>11</th>
+      <th>12</th>
+      <th>13</th>
+      <th>14</th>
+      <th>15</th>
+      <th>16</th>
+      <th>17</th>
+      <th>18</th>
+      <th>19</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>19</th>
+      <td>2021/1/28 2:31</td>
+      <td>0</td>
+      <td>41.287231</td>
+      <td>40.947472</td>
+      <td>41.178665</td>
+      <td>40.348518</td>
+      <td>41.466095</td>
+      <td>41.107025</td>
+      <td>40.809212</td>
+      <td>41.696716</td>
+      <td>...</td>
+      <td>40.868599</td>
+      <td>40.149940</td>
+      <td>38.468674</td>
+      <td>39.500050</td>
+      <td>39.807438</td>
+      <td>40.127701</td>
+      <td>41.453720</td>
+      <td>40.501476</td>
+      <td>41.209389</td>
+      <td>40.481182</td>
+    </tr>
+    <tr>
+      <th>20</th>
+      <td>2021/1/28 2:31</td>
+      <td>0</td>
+      <td>40.947472</td>
+      <td>41.178665</td>
+      <td>40.348518</td>
+      <td>41.466095</td>
+      <td>41.107025</td>
+      <td>40.809212</td>
+      <td>41.696716</td>
+      <td>40.738052</td>
+      <td>...</td>
+      <td>40.149940</td>
+      <td>38.468674</td>
+      <td>39.500050</td>
+      <td>39.807438</td>
+      <td>40.127701</td>
+      <td>41.453720</td>
+      <td>40.501476</td>
+      <td>41.209389</td>
+      <td>40.481182</td>
+      <td>41.571926</td>
+    </tr>
+    <tr>
+      <th>21</th>
+      <td>2021/1/28 2:32</td>
+      <td>0</td>
+      <td>41.178665</td>
+      <td>40.348518</td>
+      <td>41.466095</td>
+      <td>41.107025</td>
+      <td>40.809212</td>
+      <td>41.696716</td>
+      <td>40.738052</td>
+      <td>40.704216</td>
+      <td>...</td>
+      <td>38.468674</td>
+      <td>39.500050</td>
+      <td>39.807438</td>
+      <td>40.127701</td>
+      <td>41.453720</td>
+      <td>40.501476</td>
+      <td>41.209389</td>
+      <td>40.481182</td>
+      <td>41.571926</td>
+      <td>41.353920</td>
+    </tr>
+    <tr>
+      <th>22</th>
+      <td>2021/1/28 2:32</td>
+      <td>0</td>
+      <td>40.348518</td>
+      <td>41.466095</td>
+      <td>41.107025</td>
+      <td>40.809212</td>
+      <td>41.696716</td>
+      <td>40.738052</td>
+      <td>40.704216</td>
+      <td>40.868599</td>
+      <td>...</td>
+      <td>39.500050</td>
+      <td>39.807438</td>
+      <td>40.127701</td>
+      <td>41.453720</td>
+      <td>40.501476</td>
+      <td>41.209389</td>
+      <td>40.481182</td>
+      <td>41.571926</td>
+      <td>41.353920</td>
+      <td>40.728355</td>
+    </tr>
+    <tr>
+      <th>23</th>
+      <td>2021/1/28 2:33</td>
+      <td>0</td>
+      <td>41.466095</td>
+      <td>41.107025</td>
+      <td>40.809212</td>
+      <td>41.696716</td>
+      <td>40.738052</td>
+      <td>40.704216</td>
+      <td>40.868599</td>
+      <td>40.149940</td>
+      <td>...</td>
+      <td>39.807438</td>
+      <td>40.127701</td>
+      <td>41.453720</td>
+      <td>40.501476</td>
+      <td>41.209389</td>
+      <td>40.481182</td>
+      <td>41.571926</td>
+      <td>41.353920</td>
+      <td>40.728355</td>
+      <td>41.024017</td>
+    </tr>
+  </tbody>
+</table>
+<p>5 rows × 22 columns</p>
+</div>
+
+
+
+
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">list</span>=[<span class="string">&#x27;time&#x27;</span>,<span class="string">&#x27;anomaly&#x27;</span>]</span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">19</span>,-<span class="number">1</span>,-<span class="number">1</span>):</span><br><span class="line">    <span class="built_in">list</span>.append(<span class="string">&#x27;n-&#x27;</span>+<span class="built_in">str</span>(i))</span><br><span class="line">new_data.columns=<span class="built_in">list</span></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">new_data.head()</span><br></pre></td></tr></table></figure>
+
+
+
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+<pre><code>.dataframe tbody tr th &#123;
+    vertical-align: top;
+&#125;
+
+.dataframe thead th &#123;
+    text-align: right;
+&#125;
+</code></pre>
+<p></style><p></p>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>time</th>
+      <th>anomaly</th>
+      <th>n-19</th>
+      <th>n-18</th>
+      <th>n-17</th>
+      <th>n-16</th>
+      <th>n-15</th>
+      <th>n-14</th>
+      <th>n-13</th>
+      <th>n-12</th>
+      <th>...</th>
+      <th>n-9</th>
+      <th>n-8</th>
+      <th>n-7</th>
+      <th>n-6</th>
+      <th>n-5</th>
+      <th>n-4</th>
+      <th>n-3</th>
+      <th>n-2</th>
+      <th>n-1</th>
+      <th>n-0</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>19</th>
+      <td>2021/1/28 2:31</td>
+      <td>0</td>
+      <td>41.287231</td>
+      <td>40.947472</td>
+      <td>41.178665</td>
+      <td>40.348518</td>
+      <td>41.466095</td>
+      <td>41.107025</td>
+      <td>40.809212</td>
+      <td>41.696716</td>
+      <td>...</td>
+      <td>40.868599</td>
+      <td>40.149940</td>
+      <td>38.468674</td>
+      <td>39.500050</td>
+      <td>39.807438</td>
+      <td>40.127701</td>
+      <td>41.453720</td>
+      <td>40.501476</td>
+      <td>41.209389</td>
+      <td>40.481182</td>
+    </tr>
+    <tr>
+      <th>20</th>
+      <td>2021/1/28 2:31</td>
+      <td>0</td>
+      <td>40.947472</td>
+      <td>41.178665</td>
+      <td>40.348518</td>
+      <td>41.466095</td>
+      <td>41.107025</td>
+      <td>40.809212</td>
+      <td>41.696716</td>
+      <td>40.738052</td>
+      <td>...</td>
+      <td>40.149940</td>
+      <td>38.468674</td>
+      <td>39.500050</td>
+      <td>39.807438</td>
+      <td>40.127701</td>
+      <td>41.453720</td>
+      <td>40.501476</td>
+      <td>41.209389</td>
+      <td>40.481182</td>
+      <td>41.571926</td>
+    </tr>
+    <tr>
+      <th>21</th>
+      <td>2021/1/28 2:32</td>
+      <td>0</td>
+      <td>41.178665</td>
+      <td>40.348518</td>
+      <td>41.466095</td>
+      <td>41.107025</td>
+      <td>40.809212</td>
+      <td>41.696716</td>
+      <td>40.738052</td>
+      <td>40.704216</td>
+      <td>...</td>
+      <td>38.468674</td>
+      <td>39.500050</td>
+      <td>39.807438</td>
+      <td>40.127701</td>
+      <td>41.453720</td>
+      <td>40.501476</td>
+      <td>41.209389</td>
+      <td>40.481182</td>
+      <td>41.571926</td>
+      <td>41.353920</td>
+    </tr>
+    <tr>
+      <th>22</th>
+      <td>2021/1/28 2:32</td>
+      <td>0</td>
+      <td>40.348518</td>
+      <td>41.466095</td>
+      <td>41.107025</td>
+      <td>40.809212</td>
+      <td>41.696716</td>
+      <td>40.738052</td>
+      <td>40.704216</td>
+      <td>40.868599</td>
+      <td>...</td>
+      <td>39.500050</td>
+      <td>39.807438</td>
+      <td>40.127701</td>
+      <td>41.453720</td>
+      <td>40.501476</td>
+      <td>41.209389</td>
+      <td>40.481182</td>
+      <td>41.571926</td>
+      <td>41.353920</td>
+      <td>40.728355</td>
+    </tr>
+    <tr>
+      <th>23</th>
+      <td>2021/1/28 2:33</td>
+      <td>0</td>
+      <td>41.466095</td>
+      <td>41.107025</td>
+      <td>40.809212</td>
+      <td>41.696716</td>
+      <td>40.738052</td>
+      <td>40.704216</td>
+      <td>40.868599</td>
+      <td>40.149940</td>
+      <td>...</td>
+      <td>39.807438</td>
+      <td>40.127701</td>
+      <td>41.453720</td>
+      <td>40.501476</td>
+      <td>41.209389</td>
+      <td>40.481182</td>
+      <td>41.571926</td>
+      <td>41.353920</td>
+      <td>40.728355</td>
+      <td>41.024017</td>
+    </tr>
+  </tbody>
+</table>
+<p>5 rows × 22 columns</p>
+</div>
+
+
+
+
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">x=new_data.drop([<span class="string">&#x27;time&#x27;</span>,<span class="string">&#x27;anomaly&#x27;</span>],axis=<span class="number">1</span>)</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">x.head()</span><br></pre></td></tr></table></figure>
+
+
+
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+<pre><code>.dataframe tbody tr th &#123;
+    vertical-align: top;
+&#125;
+
+.dataframe thead th &#123;
+    text-align: right;
+&#125;
+</code></pre>
+<p></style><p></p>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>n-19</th>
+      <th>n-18</th>
+      <th>n-17</th>
+      <th>n-16</th>
+      <th>n-15</th>
+      <th>n-14</th>
+      <th>n-13</th>
+      <th>n-12</th>
+      <th>n-11</th>
+      <th>n-10</th>
+      <th>n-9</th>
+      <th>n-8</th>
+      <th>n-7</th>
+      <th>n-6</th>
+      <th>n-5</th>
+      <th>n-4</th>
+      <th>n-3</th>
+      <th>n-2</th>
+      <th>n-1</th>
+      <th>n-0</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>19</th>
+      <td>41.287231</td>
+      <td>40.947472</td>
+      <td>41.178665</td>
+      <td>40.348518</td>
+      <td>41.466095</td>
+      <td>41.107025</td>
+      <td>40.809212</td>
+      <td>41.696716</td>
+      <td>40.738052</td>
+      <td>40.704216</td>
+      <td>40.868599</td>
+      <td>40.149940</td>
+      <td>38.468674</td>
+      <td>39.500050</td>
+      <td>39.807438</td>
+      <td>40.127701</td>
+      <td>41.453720</td>
+      <td>40.501476</td>
+      <td>41.209389</td>
+      <td>40.481182</td>
+    </tr>
+    <tr>
+      <th>20</th>
+      <td>40.947472</td>
+      <td>41.178665</td>
+      <td>40.348518</td>
+      <td>41.466095</td>
+      <td>41.107025</td>
+      <td>40.809212</td>
+      <td>41.696716</td>
+      <td>40.738052</td>
+      <td>40.704216</td>
+      <td>40.868599</td>
+      <td>40.149940</td>
+      <td>38.468674</td>
+      <td>39.500050</td>
+      <td>39.807438</td>
+      <td>40.127701</td>
+      <td>41.453720</td>
+      <td>40.501476</td>
+      <td>41.209389</td>
+      <td>40.481182</td>
+      <td>41.571926</td>
+    </tr>
+    <tr>
+      <th>21</th>
+      <td>41.178665</td>
+      <td>40.348518</td>
+      <td>41.466095</td>
+      <td>41.107025</td>
+      <td>40.809212</td>
+      <td>41.696716</td>
+      <td>40.738052</td>
+      <td>40.704216</td>
+      <td>40.868599</td>
+      <td>40.149940</td>
+      <td>38.468674</td>
+      <td>39.500050</td>
+      <td>39.807438</td>
+      <td>40.127701</td>
+      <td>41.453720</td>
+      <td>40.501476</td>
+      <td>41.209389</td>
+      <td>40.481182</td>
+      <td>41.571926</td>
+      <td>41.353920</td>
+    </tr>
+    <tr>
+      <th>22</th>
+      <td>40.348518</td>
+      <td>41.466095</td>
+      <td>41.107025</td>
+      <td>40.809212</td>
+      <td>41.696716</td>
+      <td>40.738052</td>
+      <td>40.704216</td>
+      <td>40.868599</td>
+      <td>40.149940</td>
+      <td>38.468674</td>
+      <td>39.500050</td>
+      <td>39.807438</td>
+      <td>40.127701</td>
+      <td>41.453720</td>
+      <td>40.501476</td>
+      <td>41.209389</td>
+      <td>40.481182</td>
+      <td>41.571926</td>
+      <td>41.353920</td>
+      <td>40.728355</td>
+    </tr>
+    <tr>
+      <th>23</th>
+      <td>41.466095</td>
+      <td>41.107025</td>
+      <td>40.809212</td>
+      <td>41.696716</td>
+      <td>40.738052</td>
+      <td>40.704216</td>
+      <td>40.868599</td>
+      <td>40.149940</td>
+      <td>38.468674</td>
+      <td>39.500050</td>
+      <td>39.807438</td>
+      <td>40.127701</td>
+      <td>41.453720</td>
+      <td>40.501476</td>
+      <td>41.209389</td>
+      <td>40.481182</td>
+      <td>41.571926</td>
+      <td>41.353920</td>
+      <td>40.728355</td>
+      <td>41.024017</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+
+
+
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">y=new_data.iloc[:,new_data.columns==<span class="string">&#x27;anomaly&#x27;</span>]</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">y.head()</span><br></pre></td></tr></table></figure>
+
+
+
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+<pre><code>.dataframe tbody tr th &#123;
+    vertical-align: top;
+&#125;
+
+.dataframe thead th &#123;
+    text-align: right;
+&#125;
+</code></pre>
+<p></style><p></p>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>anomaly</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>19</th>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>20</th>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>21</th>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>22</th>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>23</th>
+      <td>0</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+
+
+
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">xtrain,xtest,ytrain,ytest=train_test_split(x,y,test_size=<span class="number">0.3</span>)</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> [xtrain,xtest,ytrain,ytest]:</span><br><span class="line">    i.index=<span class="built_in">range</span>(i.shape[<span class="number">0</span>])</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">clf=DecisionTreeClassifier(random_state=<span class="number">25</span>)</span><br><span class="line">clf=clf.fit(xtrain,ytrain)</span><br><span class="line">score=clf.score(xtest,ytest)</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">score</span><br></pre></td></tr></table></figure>
+
+
+
+<pre><code>0.9754738015607581
+</code></pre>
+<p>交叉验证</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">clf=DecisionTreeClassifier(random_state=<span class="number">25</span>)</span><br><span class="line">score=cross_val_score(clf,x,y,cv=<span class="number">10</span>).mean()</span><br><span class="line">roc_auc_score=cross_val_score(clf,x,y,scoring=<span class="string">&#x27;roc_auc&#x27;</span>,cv=<span class="number">10</span>).mean()</span><br><span class="line">f1_score=cross_val_score(clf,x,y,scoring=<span class="string">&#x27;f1&#x27;</span>,cv=<span class="number">10</span>).mean()</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">print(score</span><br><span class="line">,roc_auc_score</span><br><span class="line">,f1_score)</span><br></pre></td></tr></table></figure>
+<pre><code>0.9789118089380711 0.9565914552594293 0.9223057533749198
+</code></pre>
+<p>分数高，样本不均衡</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sns.factorplot(x=<span class="string">&#x27;anomaly&#x27;</span> , kind=<span class="string">&#x27;count&#x27;</span> , data=new_data, palette=[<span class="string">&#x27;r&#x27;</span>,<span class="string">&#x27;g&#x27;</span>])</span><br></pre></td></tr></table></figure>
+<pre><code>G:\anaconda\envs\pytorch\lib\site-packages\seaborn\categorical.py:3714: UserWarning: The `factorplot` function has been renamed to `catplot`. The original name will be removed in a future release. Please update your code. Note that the default `kind` in `factorplot` (`&#39;point&#39;`) has changed `&#39;strip&#39;` in `catplot`.
+  warnings.warn(msg)
+
+
+
+
+
+&lt;seaborn.axisgrid.FacetGrid at 0x1e4bb00d390&gt;
+</code></pre>
+<p><img src="/2021/02/25/decisiontreeclassifier/output_38_2.png" alt="png"></p>
+<p>过采样</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">new_data.anomaly.value_counts()</span><br></pre></td></tr></table></figure>
+
+
+
+<pre><code>0    2559
+1     429
+Name: anomaly, dtype: int64
+</code></pre>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">f_sample=new_data.loc[new_data[<span class="string">&#x27;anomaly&#x27;</span>]==<span class="number">0</span>][:<span class="number">429</span>]</span><br><span class="line">t_sample=new_data.loc[new_data[<span class="string">&#x27;anomaly&#x27;</span>]==<span class="number">1</span>]</span><br><span class="line">balanced_data=pd.concat([f_sample,t_sample])</span><br><span class="line">s_b_data=balanced_data.sample(frac=<span class="number">1</span>,random_state=<span class="number">25</span>)</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">s_b_data.head()</span><br></pre></td></tr></table></figure>
+
+
+
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+<pre><code>.dataframe tbody tr th &#123;
+    vertical-align: top;
+&#125;
+
+.dataframe thead th &#123;
+    text-align: right;
+&#125;
+</code></pre>
+<p></style><p></p>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>time</th>
+      <th>anomaly</th>
+      <th>n-19</th>
+      <th>n-18</th>
+      <th>n-17</th>
+      <th>n-16</th>
+      <th>n-15</th>
+      <th>n-14</th>
+      <th>n-13</th>
+      <th>n-12</th>
+      <th>...</th>
+      <th>n-9</th>
+      <th>n-8</th>
+      <th>n-7</th>
+      <th>n-6</th>
+      <th>n-5</th>
+      <th>n-4</th>
+      <th>n-3</th>
+      <th>n-2</th>
+      <th>n-1</th>
+      <th>n-0</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>228</th>
+      <td>2021/1/28 4:47</td>
+      <td>0</td>
+      <td>41.553207</td>
+      <td>41.627777</td>
+      <td>41.536247</td>
+      <td>40.835033</td>
+      <td>40.476986</td>
+      <td>40.121754</td>
+      <td>40.728367</td>
+      <td>41.929169</td>
+      <td>...</td>
+      <td>38.843208</td>
+      <td>40.288910</td>
+      <td>40.430695</td>
+      <td>40.757828</td>
+      <td>39.908314</td>
+      <td>40.554607</td>
+      <td>41.314259</td>
+      <td>41.326038</td>
+      <td>41.132351</td>
+      <td>41.970947</td>
+    </tr>
+    <tr>
+      <th>1582</th>
+      <td>2021/1/28 19:40</td>
+      <td>1</td>
+      <td>34.061203</td>
+      <td>35.926952</td>
+      <td>34.363434</td>
+      <td>35.492157</td>
+      <td>36.027733</td>
+      <td>34.376427</td>
+      <td>33.276081</td>
+      <td>33.704926</td>
+      <td>...</td>
+      <td>36.009689</td>
+      <td>35.600502</td>
+      <td>36.442261</td>
+      <td>36.856422</td>
+      <td>35.669537</td>
+      <td>35.369671</td>
+      <td>35.314068</td>
+      <td>35.451233</td>
+      <td>35.054863</td>
+      <td>35.944801</td>
+    </tr>
+    <tr>
+      <th>287</th>
+      <td>2021/1/28 5:25</td>
+      <td>0</td>
+      <td>40.912849</td>
+      <td>41.104504</td>
+      <td>41.569000</td>
+      <td>39.659809</td>
+      <td>40.152428</td>
+      <td>37.969944</td>
+      <td>37.892399</td>
+      <td>39.375442</td>
+      <td>...</td>
+      <td>41.590500</td>
+      <td>39.893120</td>
+      <td>40.950237</td>
+      <td>40.742901</td>
+      <td>40.856537</td>
+      <td>41.536854</td>
+      <td>40.406738</td>
+      <td>40.519356</td>
+      <td>41.075737</td>
+      <td>40.084412</td>
+    </tr>
+    <tr>
+      <th>2588</th>
+      <td>2021/1/29 11:59</td>
+      <td>1</td>
+      <td>35.720089</td>
+      <td>37.708820</td>
+      <td>36.583263</td>
+      <td>37.150158</td>
+      <td>37.409622</td>
+      <td>36.844933</td>
+      <td>36.387512</td>
+      <td>35.805550</td>
+      <td>...</td>
+      <td>35.279541</td>
+      <td>35.312359</td>
+      <td>37.133392</td>
+      <td>36.792038</td>
+      <td>37.377808</td>
+      <td>37.297611</td>
+      <td>37.176392</td>
+      <td>36.305603</td>
+      <td>36.475853</td>
+      <td>36.789452</td>
+    </tr>
+    <tr>
+      <th>161</th>
+      <td>2021/1/28 3:59</td>
+      <td>0</td>
+      <td>41.523567</td>
+      <td>41.325706</td>
+      <td>39.516182</td>
+      <td>41.334412</td>
+      <td>40.664444</td>
+      <td>40.566128</td>
+      <td>41.100464</td>
+      <td>41.407272</td>
+      <td>...</td>
+      <td>41.204056</td>
+      <td>40.138016</td>
+      <td>39.107468</td>
+      <td>38.889786</td>
+      <td>38.850227</td>
+      <td>39.903576</td>
+      <td>40.323677</td>
+      <td>42.543083</td>
+      <td>41.386440</td>
+      <td>41.051868</td>
+    </tr>
+  </tbody>
+</table>
+<p>5 rows × 22 columns</p>
+</div>
+
+
+
+
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sns.factorplot(x=<span class="string">&#x27;anomaly&#x27;</span> , kind=<span class="string">&#x27;count&#x27;</span> , data=s_b_data, palette=[<span class="string">&#x27;r&#x27;</span>,<span class="string">&#x27;g&#x27;</span>])</span><br></pre></td></tr></table></figure>
+<pre><code>G:\anaconda\envs\pytorch\lib\site-packages\seaborn\categorical.py:3714: UserWarning: The `factorplot` function has been renamed to `catplot`. The original name will be removed in a future release. Please update your code. Note that the default `kind` in `factorplot` (`&#39;point&#39;`) has changed `&#39;strip&#39;` in `catplot`.
+  warnings.warn(msg)
+
+
+
+
+
+&lt;seaborn.axisgrid.FacetGrid at 0x1e4bb0374e0&gt;
+</code></pre>
+<p><img src="/2021/02/25/decisiontreeclassifier/output_43_2.png" alt="png"></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">b_x=s_b_data.drop([<span class="string">&#x27;time&#x27;</span>,<span class="string">&#x27;anomaly&#x27;</span>],axis=<span class="number">1</span>)</span><br><span class="line">b_x.head()</span><br></pre></td></tr></table></figure>
+
+
+
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+<pre><code>.dataframe tbody tr th &#123;
+    vertical-align: top;
+&#125;
+
+.dataframe thead th &#123;
+    text-align: right;
+&#125;
+</code></pre>
+<p></style><p></p>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>n-19</th>
+      <th>n-18</th>
+      <th>n-17</th>
+      <th>n-16</th>
+      <th>n-15</th>
+      <th>n-14</th>
+      <th>n-13</th>
+      <th>n-12</th>
+      <th>n-11</th>
+      <th>n-10</th>
+      <th>n-9</th>
+      <th>n-8</th>
+      <th>n-7</th>
+      <th>n-6</th>
+      <th>n-5</th>
+      <th>n-4</th>
+      <th>n-3</th>
+      <th>n-2</th>
+      <th>n-1</th>
+      <th>n-0</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>228</th>
+      <td>41.553207</td>
+      <td>41.627777</td>
+      <td>41.536247</td>
+      <td>40.835033</td>
+      <td>40.476986</td>
+      <td>40.121754</td>
+      <td>40.728367</td>
+      <td>41.929169</td>
+      <td>42.126003</td>
+      <td>40.759552</td>
+      <td>38.843208</td>
+      <td>40.288910</td>
+      <td>40.430695</td>
+      <td>40.757828</td>
+      <td>39.908314</td>
+      <td>40.554607</td>
+      <td>41.314259</td>
+      <td>41.326038</td>
+      <td>41.132351</td>
+      <td>41.970947</td>
+    </tr>
+    <tr>
+      <th>1582</th>
+      <td>34.061203</td>
+      <td>35.926952</td>
+      <td>34.363434</td>
+      <td>35.492157</td>
+      <td>36.027733</td>
+      <td>34.376427</td>
+      <td>33.276081</td>
+      <td>33.704926</td>
+      <td>33.568775</td>
+      <td>33.773293</td>
+      <td>36.009689</td>
+      <td>35.600502</td>
+      <td>36.442261</td>
+      <td>36.856422</td>
+      <td>35.669537</td>
+      <td>35.369671</td>
+      <td>35.314068</td>
+      <td>35.451233</td>
+      <td>35.054863</td>
+      <td>35.944801</td>
+    </tr>
+    <tr>
+      <th>287</th>
+      <td>40.912849</td>
+      <td>41.104504</td>
+      <td>41.569000</td>
+      <td>39.659809</td>
+      <td>40.152428</td>
+      <td>37.969944</td>
+      <td>37.892399</td>
+      <td>39.375442</td>
+      <td>40.774029</td>
+      <td>41.272930</td>
+      <td>41.590500</td>
+      <td>39.893120</td>
+      <td>40.950237</td>
+      <td>40.742901</td>
+      <td>40.856537</td>
+      <td>41.536854</td>
+      <td>40.406738</td>
+      <td>40.519356</td>
+      <td>41.075737</td>
+      <td>40.084412</td>
+    </tr>
+    <tr>
+      <th>2588</th>
+      <td>35.720089</td>
+      <td>37.708820</td>
+      <td>36.583263</td>
+      <td>37.150158</td>
+      <td>37.409622</td>
+      <td>36.844933</td>
+      <td>36.387512</td>
+      <td>35.805550</td>
+      <td>34.872864</td>
+      <td>35.165260</td>
+      <td>35.279541</td>
+      <td>35.312359</td>
+      <td>37.133392</td>
+      <td>36.792038</td>
+      <td>37.377808</td>
+      <td>37.297611</td>
+      <td>37.176392</td>
+      <td>36.305603</td>
+      <td>36.475853</td>
+      <td>36.789452</td>
+    </tr>
+    <tr>
+      <th>161</th>
+      <td>41.523567</td>
+      <td>41.325706</td>
+      <td>39.516182</td>
+      <td>41.334412</td>
+      <td>40.664444</td>
+      <td>40.566128</td>
+      <td>41.100464</td>
+      <td>41.407272</td>
+      <td>40.736168</td>
+      <td>40.645557</td>
+      <td>41.204056</td>
+      <td>40.138016</td>
+      <td>39.107468</td>
+      <td>38.889786</td>
+      <td>38.850227</td>
+      <td>39.903576</td>
+      <td>40.323677</td>
+      <td>42.543083</td>
+      <td>41.386440</td>
+      <td>41.051868</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+
+
+
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">s_b_data.head()</span><br></pre></td></tr></table></figure>
+
+
+
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+<pre><code>.dataframe tbody tr th &#123;
+    vertical-align: top;
+&#125;
+
+.dataframe thead th &#123;
+    text-align: right;
+&#125;
+</code></pre>
+<p></style><p></p>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>time</th>
+      <th>anomaly</th>
+      <th>n-19</th>
+      <th>n-18</th>
+      <th>n-17</th>
+      <th>n-16</th>
+      <th>n-15</th>
+      <th>n-14</th>
+      <th>n-13</th>
+      <th>n-12</th>
+      <th>...</th>
+      <th>n-9</th>
+      <th>n-8</th>
+      <th>n-7</th>
+      <th>n-6</th>
+      <th>n-5</th>
+      <th>n-4</th>
+      <th>n-3</th>
+      <th>n-2</th>
+      <th>n-1</th>
+      <th>n-0</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>228</th>
+      <td>2021/1/28 4:47</td>
+      <td>0</td>
+      <td>41.553207</td>
+      <td>41.627777</td>
+      <td>41.536247</td>
+      <td>40.835033</td>
+      <td>40.476986</td>
+      <td>40.121754</td>
+      <td>40.728367</td>
+      <td>41.929169</td>
+      <td>...</td>
+      <td>38.843208</td>
+      <td>40.288910</td>
+      <td>40.430695</td>
+      <td>40.757828</td>
+      <td>39.908314</td>
+      <td>40.554607</td>
+      <td>41.314259</td>
+      <td>41.326038</td>
+      <td>41.132351</td>
+      <td>41.970947</td>
+    </tr>
+    <tr>
+      <th>1582</th>
+      <td>2021/1/28 19:40</td>
+      <td>1</td>
+      <td>34.061203</td>
+      <td>35.926952</td>
+      <td>34.363434</td>
+      <td>35.492157</td>
+      <td>36.027733</td>
+      <td>34.376427</td>
+      <td>33.276081</td>
+      <td>33.704926</td>
+      <td>...</td>
+      <td>36.009689</td>
+      <td>35.600502</td>
+      <td>36.442261</td>
+      <td>36.856422</td>
+      <td>35.669537</td>
+      <td>35.369671</td>
+      <td>35.314068</td>
+      <td>35.451233</td>
+      <td>35.054863</td>
+      <td>35.944801</td>
+    </tr>
+    <tr>
+      <th>287</th>
+      <td>2021/1/28 5:25</td>
+      <td>0</td>
+      <td>40.912849</td>
+      <td>41.104504</td>
+      <td>41.569000</td>
+      <td>39.659809</td>
+      <td>40.152428</td>
+      <td>37.969944</td>
+      <td>37.892399</td>
+      <td>39.375442</td>
+      <td>...</td>
+      <td>41.590500</td>
+      <td>39.893120</td>
+      <td>40.950237</td>
+      <td>40.742901</td>
+      <td>40.856537</td>
+      <td>41.536854</td>
+      <td>40.406738</td>
+      <td>40.519356</td>
+      <td>41.075737</td>
+      <td>40.084412</td>
+    </tr>
+    <tr>
+      <th>2588</th>
+      <td>2021/1/29 11:59</td>
+      <td>1</td>
+      <td>35.720089</td>
+      <td>37.708820</td>
+      <td>36.583263</td>
+      <td>37.150158</td>
+      <td>37.409622</td>
+      <td>36.844933</td>
+      <td>36.387512</td>
+      <td>35.805550</td>
+      <td>...</td>
+      <td>35.279541</td>
+      <td>35.312359</td>
+      <td>37.133392</td>
+      <td>36.792038</td>
+      <td>37.377808</td>
+      <td>37.297611</td>
+      <td>37.176392</td>
+      <td>36.305603</td>
+      <td>36.475853</td>
+      <td>36.789452</td>
+    </tr>
+    <tr>
+      <th>161</th>
+      <td>2021/1/28 3:59</td>
+      <td>0</td>
+      <td>41.523567</td>
+      <td>41.325706</td>
+      <td>39.516182</td>
+      <td>41.334412</td>
+      <td>40.664444</td>
+      <td>40.566128</td>
+      <td>41.100464</td>
+      <td>41.407272</td>
+      <td>...</td>
+      <td>41.204056</td>
+      <td>40.138016</td>
+      <td>39.107468</td>
+      <td>38.889786</td>
+      <td>38.850227</td>
+      <td>39.903576</td>
+      <td>40.323677</td>
+      <td>42.543083</td>
+      <td>41.386440</td>
+      <td>41.051868</td>
+    </tr>
+  </tbody>
+</table>
+<p>5 rows × 22 columns</p>
+</div>
+
+
+
+
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">b_y=s_b_data.loc[:,s_b_data.columns==<span class="string">&#x27;anomaly&#x27;</span>]</span><br><span class="line">b_y.head()</span><br></pre></td></tr></table></figure>
+
+
+
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+<pre><code>.dataframe tbody tr th &#123;
+    vertical-align: top;
+&#125;
+
+.dataframe thead th &#123;
+    text-align: right;
+&#125;
+</code></pre>
+<p></style><p></p>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>anomaly</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>228</th>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>1582</th>
+      <td>1</td>
+    </tr>
+    <tr>
+      <th>287</th>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>2588</th>
+      <td>1</td>
+    </tr>
+    <tr>
+      <th>161</th>
+      <td>0</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+
+
+
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">clf_1=DecisionTreeClassifier(random_state=<span class="number">25</span>)</span><br><span class="line">b_s=cross_val_score(clf_1,b_x,b_y,cv=<span class="number">10</span>).mean()</span><br><span class="line">b_s</span><br></pre></td></tr></table></figure>
+
+
+
+<pre><code>0.9661833105335157
+</code></pre>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">clf=clf.fit(xtrain,ytrain)</span><br><span class="line">clf.predict(x)</span><br></pre></td></tr></table></figure>
+
+
+
+<pre><code>array([0, 0, 0, ..., 0, 0, 0], dtype=int64)
+</code></pre>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">plt.figure(figsize=(<span class="number">15</span>, <span class="number">5.5</span>))</span><br><span class="line">plt.scatter(<span class="built_in">range</span>(data[<span class="string">&#x27;q&#x27;</span>].shape[<span class="number">0</span>]),data[<span class="string">&#x27;q&#x27;</span>],c=data[<span class="string">&#x27;anomaly&#x27;</span>])</span><br><span class="line">plt.show()</span><br></pre></td></tr></table></figure>
+
+<p><img src="/2021/02/25/decisiontreeclassifier/output_49_0.png" alt="png"></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">plt.figure(figsize=(<span class="number">15</span>, <span class="number">5.5</span>))</span><br><span class="line">plt.scatter(<span class="built_in">range</span>(new_data[<span class="string">&#x27;n-0&#x27;</span>].shape[<span class="number">0</span>]),new_data[<span class="string">&#x27;n-0&#x27;</span>],c=clf.predict(x))</span><br><span class="line">plt.show()</span><br></pre></td></tr></table></figure>
+
+<p><img src="/2021/02/25/decisiontreeclassifier/output_50_0.png" alt="png"></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">b_x, b_y = sklearn.utils.shuffle(b_x,b_y)</span><br><span class="line">b_xtrain,b_xtest,b_ytrain,b_ytest=train_test_split(b_x,b_y,test_size=<span class="number">0.3</span>)</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">tr=[]</span><br><span class="line">te=[]</span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">10</span>):</span><br><span class="line">    clf=DecisionTreeClassifier(random_state=<span class="number">0</span></span><br><span class="line">                              ,max_depth=i+<span class="number">1</span></span><br><span class="line">                             <span class="comment"># ,criterion=&#x27;entropy&#x27;</span></span><br><span class="line">                              )</span><br><span class="line">    clf=clf.fit(b_xtrain,b_ytrain)</span><br><span class="line">    score_tr=clf.score(b_xtrain,b_ytrain)</span><br><span class="line">    score_te=cross_val_score(clf,b_x,b_y,cv=<span class="number">10</span>).mean()</span><br><span class="line">    tr.append(score_tr)</span><br><span class="line">    te.append(score_te)</span><br><span class="line">    </span><br><span class="line">print(<span class="built_in">max</span>(te))</span><br><span class="line">plt.plot(<span class="built_in">range</span>(<span class="number">1</span>,<span class="number">11</span>),tr,color=<span class="string">&#x27;r&#x27;</span>,label=<span class="string">&#x27;train&#x27;</span>)</span><br><span class="line">plt.plot(<span class="built_in">range</span>(<span class="number">1</span>,<span class="number">11</span>),te,color=<span class="string">&#x27;b&#x27;</span>,label=<span class="string">&#x27;test&#x27;</span>)</span><br><span class="line">plt.xticks(<span class="built_in">range</span>(<span class="number">1</span>,<span class="number">11</span>))</span><br><span class="line">plt.legend()</span><br><span class="line">plt.show()</span><br></pre></td></tr></table></figure>
+<pre><code>0.9754856361149111
+</code></pre>
+<p><img src="/2021/02/25/decisiontreeclassifier/output_52_1.png" alt="png"></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">clf=DecisionTreeClassifier(random_state=<span class="number">0</span></span><br><span class="line">                              ,max_depth=<span class="number">3</span></span><br><span class="line">                              <span class="comment"># ,min_samples_leaf=10</span></span><br><span class="line">                             <span class="comment">#,min_samples_split=10</span></span><br><span class="line">                              <span class="comment">#,criterion=&#x27;entropy&#x27;</span></span><br><span class="line">                              )</span><br><span class="line">score1=cross_val_score(clf,b_x,b_y,cv=<span class="number">10</span>).mean()</span><br><span class="line">clf.fit(b_xtrain,b_ytrain)</span><br><span class="line">score2=clf.score(b_xtest,b_ytest)</span><br><span class="line">print(score1)</span><br><span class="line">print(score2)</span><br></pre></td></tr></table></figure>
+<pre><code>0.9673324213406292
+0.9767441860465116
+</code></pre>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">dot_data = tree.export_graphviz(clf</span><br><span class="line">                                ,feature_names=b_x.columns</span><br><span class="line">                                ,class_names=[<span class="string">&quot;正常&quot;</span>,<span class="string">&quot;异常&quot;</span>]</span><br><span class="line">                                ,filled=<span class="literal">True</span></span><br><span class="line">                                ,rounded=<span class="literal">True</span></span><br><span class="line">                                ,out_file=<span class="literal">None</span></span><br><span class="line">                               )</span><br><span class="line">graph = graphviz.Source(dot_data)</span><br><span class="line">graph</span><br></pre></td></tr></table></figure>
+
+
+
+<p><img src="/2021/02/25/decisiontreeclassifier/output_54_0.svg" alt="svg"></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[*<span class="built_in">zip</span>(b_x.columns,clf.feature_importances_)]</span><br></pre></td></tr></table></figure>
+
+
+
+<pre><code>[(&#39;n-19&#39;, 0.0),
+ (&#39;n-18&#39;, 0.006098862423444157),
+ (&#39;n-17&#39;, 0.0),
+ (&#39;n-16&#39;, 0.0),
+ (&#39;n-15&#39;, 0.0),
+ (&#39;n-14&#39;, 0.0),
+ (&#39;n-13&#39;, 0.0),
+ (&#39;n-12&#39;, 0.0),
+ (&#39;n-11&#39;, 0.0),
+ (&#39;n-10&#39;, 0.0),
+ (&#39;n-9&#39;, 0.0),
+ (&#39;n-8&#39;, 0.0),
+ (&#39;n-7&#39;, 0.033136202374849356),
+ (&#39;n-6&#39;, 0.0),
+ (&#39;n-5&#39;, 0.0),
+ (&#39;n-4&#39;, 0.0),
+ (&#39;n-3&#39;, 0.03450659703222079),
+ (&#39;n-2&#39;, 0.0),
+ (&#39;n-1&#39;, 0.8650480453546248),
+ (&#39;n-0&#39;, 0.06121029281486098)]
+</code></pre>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"></span><br></pre></td></tr></table></figure>
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+      
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/2021/02/25/decisiontreeclassifier/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+<aside class="wrap-side-operation">
+    <div class="mod-side-operation">
+        
+        <div class="jump-container" id="js-jump-container" style="display:none;">
+            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
+                <i class="icon-font icon-back"></i>
+            </a>
+            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
+                <i class="icon-font icon-plane jump-plane"></i>
+            </div>
+        </div>
+        
+        
+    </div>
+</aside>
+
+
+
+
+  
     <article id="post-first" class="article article-type-post  article-index" itemscope itemprop="blogPost">
   <div class="article-inner">
     
